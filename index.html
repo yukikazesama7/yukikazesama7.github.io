@@ -262,6 +262,53 @@
       justify-content: center;
       margin-top: 12px;
     }
+
+    /* 音乐按钮样式 - 新增 */
+    .music-controller {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 52px;
+      height: 52px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 99;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(45,157,95,0.4);
+      color: #1e7e45;
+    }
+    .music-controller:active {
+      transform: scale(0.92);
+      background: #e0f5ea;
+    }
+    /* 简短提示浮层 */
+    .music-hint {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      background: rgba(0,0,0,0.65);
+      color: #fff;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 24px;
+      pointer-events: none;
+      z-index: 99;
+      white-space: nowrap;
+      backdrop-filter: blur(4px);
+      transition: opacity 0.5s;
+      font-weight: 400;
+      opacity: 0;
+    }
+    .music-hint.show {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -305,7 +352,7 @@
     <button class="btn btn-outline btn-sm" onclick="goToPage('page1')">← 返回首页</button>
   </div>
 
-  <!-- ==================== 第3页：关卡1 - 灭火计划 ==================== -->
+  <!-- ==================== 关卡1 - 灭火计划 ==================== -->
   <div class="page" id="page3">
     <div class="nip-small">🦷💪</div>
     <h4 style="color:#c2410c;">🔥 第一关 · 灭火计划</h4>
@@ -316,7 +363,7 @@
     <button class="btn btn-sm" onclick="completeLevelEarly(1)">跳过</button>
   </div>
 
-  <!-- ==================== 第4页：关卡2 - 酸甜消消乐 ==================== -->
+  <!-- ==================== 关卡2 - 酸甜消消乐 ==================== -->
   <div class="page" id="page4">
     <div class="nip-small">🦷😁</div>
     <h4 style="color:#e8890c;">🍋 第二关 · 酸甜消消乐</h4>
@@ -328,7 +375,7 @@
     <button class="btn btn-sm" onclick="completeLevelEarly(2)">跳过</button>
   </div>
 
-  <!-- ==================== 第5页：关卡3 - 冰激凌防御战 ==================== -->
+  <!-- ==================== 关卡3 - 冰激凌防御战 ==================== -->
   <div class="page" id="page5">
     <div class="nip-small">🦷❄️</div>
     <h4 style="color:#2b7a9c;">🍦 第三关 · 冰激凌防御战</h4>
@@ -342,7 +389,7 @@
     <button class="btn btn-sm" onclick="completeLevelEarly(3)">跳过</button>
   </div>
 
-  <!-- ==================== 第6页：知识回顾与总结 ==================== -->
+  <!-- ==================== 知识回顾与总结 ==================== -->
   <div class="page" id="page6">
     <div class="nip-character">🦷💚</div>
     <h3 style="color:#1a3c2a;margin:6px 0;">✅ 关卡回顾</h3>
@@ -357,7 +404,7 @@
     <button class="btn" id="btnAfterReview" onclick="goToPage('page7')">查看护牙秘籍 →</button>
   </div>
 
-  <!-- ==================== 第7页：品牌总结与分享转化 ==================== -->
+  <!-- ==================== 品牌总结与分享转化 ==================== -->
   <div class="page" id="page7">
     <div class="nip-character" style="font-size:72px;">🦷🎉</div>
     <h2 style="color:#1a3c2a;">恭喜通关！</h2>
@@ -376,6 +423,14 @@
       <button class="btn btn-outline" onclick="resetGame()">🔄 再玩一次</button>
     </div>
   </div>
+
+  <!-- 背景音乐控件 (悬浮按钮 & audio元素) -->
+  <div class="music-controller" id="musicToggleBtn">🎵</div>
+  <div class="music-hint" id="musicHint">🎶 轻触页面任意位置，开启音乐</div>
+  <audio id="bgMusic" loop preload="auto" style="display:none;">
+    <!-- 使用公开可用且品质良好的背景音乐（Kalimba 轻快乐曲，适合游戏氛围，循环播放） -->
+    <source src="https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3" type="audio/mpeg">
+  </audio>
 
 </div>
 
@@ -554,10 +609,8 @@
     // ============ 完成关卡 ============
     function markComplete(level) {
       completed[level] = true;
-      // 更新关卡卡片状态
       const card = document.getElementById('cardL'+level);
       if(card) card.classList.add('completed');
-      // 跳转到总结页
       goToPage('page6');
       updateReviewPage();
     }
@@ -589,7 +642,6 @@
         if(completed[3]) reviewHTML += '<br><small>'+tips[3]+'</small>';
       }
       document.getElementById('reviewContent').innerHTML = reviewHTML;
-      // 更新图标状态
       document.getElementById('icon1').textContent = completed[1] ? '✅' : '⏳';
       document.getElementById('icon2').textContent = completed[2] ? '✅' : '⏳';
       document.getElementById('icon3').textContent = completed[3] ? '✅' : '⏳';
@@ -629,9 +681,139 @@
     function shuffleArray(arr) {
       for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]; }
     }
-
-    // 初始化关卡卡片
     window.updateReviewPage = updateReviewPage;
+  })();
+</script>
+
+<!-- ==================== 背景音乐独立模块（带自动解锁 + 悬浮开关）==================== -->
+<script>
+  (function initBackgroundMusic() {
+    const audio = document.getElementById('bgMusic');
+    const musicBtn = document.getElementById('musicToggleBtn');
+    const hintEl = document.getElementById('musicHint');
+    if (!audio || !musicBtn) return;
+
+    // 播放状态标记 & 解锁标记（自动播放策略需要首次手势）
+    let musicUnlocked = false;      // 是否已获得用户手势解锁尝试
+    let isUserManuallyPaused = false; // 用户是否通过按钮主动暂停（用于不自动恢复）
+
+    // 辅助音量调节（避免太吵）
+    audio.volume = 0.35;
+    audio.loop = true;
+
+    // 更新按钮图标样式
+    function updateButtonIcon() {
+      if (!audio.paused) {
+        musicBtn.textContent = '🎵';
+        musicBtn.style.background = 'rgba(255, 255, 255, 0.95)';
+        musicBtn.style.boxShadow = '0 0 0 2px #2d9d5f, 0 4px 12px rgba(0,0,0,0.2)';
+      } else {
+        musicBtn.textContent = '🔇';
+        musicBtn.style.background = 'rgba(220, 220, 220, 0.9)';
+        musicBtn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+      }
+    }
+
+    // 核心: 尝试播放音乐 (返回promise)
+    function attemptPlayMusic() {
+      if (!audio.paused) return Promise.resolve(true);
+      return audio.play().then(() => {
+        isUserManuallyPaused = false;
+        updateButtonIcon();
+        // 播放成功时隐藏提示浮层
+        if (hintEl) hintEl.classList.remove('show');
+        return true;
+      }).catch(err => {
+        console.warn('音乐自动播放受阻:', err);
+        // 仅在未解锁且播放失败时显示提示
+        if (!musicUnlocked && hintEl) hintEl.classList.add('show');
+        return false;
+      });
+    }
+
+    // 暂停音乐
+    function pauseMusic() {
+      if (!audio.paused) {
+        audio.pause();
+        isUserManuallyPaused = true;
+        updateButtonIcon();
+      }
+    }
+
+    // 全局首次用户手势解锁: 监听任意click（游戏内所有交互，包含按钮、卡片等）触发一次音乐播放
+    function setupGlobalUnlock() {
+      const unlockHandler = (e) => {
+        // 如果已经解锁并且音乐没有因为用户手动暂停过？但因为解锁后不再需要全局自动干涉，
+        // 为了避免过于激进，仅在未解锁状态下触发播放，成功后标志为解锁并移除监听。
+        if (!musicUnlocked) {
+          attemptPlayMusic().then(success => {
+            if (success) {
+              musicUnlocked = true;
+              // 解锁成功后移除全局监听，避免频繁无意义调用
+              document.body.removeEventListener('click', unlockHandler);
+              document.body.removeEventListener('touchstart', unlockHandler);
+              if (hintEl) hintEl.classList.remove('show');
+            }
+          });
+        }
+      };
+      // 使用click和touchstart双保险，移动端更灵敏
+      document.body.addEventListener('click', unlockHandler);
+      document.body.addEventListener('touchstart', unlockHandler);
+    }
+
+    // 悬浮按钮toggle (手动控制)
+    function toggleMusic() {
+      if (audio.paused) {
+        // 用户主动开启，设置解锁标志为true并播放
+        musicUnlocked = true;
+        attemptPlayMusic().then(() => {
+          isUserManuallyPaused = false;
+          // 关闭提示
+          if (hintEl) hintEl.classList.remove('show');
+        });
+      } else {
+        pauseMusic();
+      }
+    }
+
+    // 当音频意外结束时（正常情况下loop不会结束，但若加载失败出现结束，重新尝试播放）
+    audio.addEventListener('ended', () => {
+      if (!musicUnlocked) return;
+      // 重新尝试循环
+      if (!isUserManuallyPaused) {
+        audio.play().catch(e => console.warn('循环重播失败:', e));
+      }
+    });
+
+    // 处理加载错误 (若外部音频不可用，静默处理但不影响游戏，并提示用户无音乐)
+    audio.addEventListener('error', (err) => {
+      console.warn('背景音乐加载失败，可网络原因', err);
+      if (musicBtn) musicBtn.style.opacity = '0.6';
+      // 可以选择显示一个叉，但不破坏体验
+      musicBtn.textContent = '🎵❌';
+    });
+
+    // 绑定按钮事件
+    musicBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMusic();
+    });
+
+    // 自动显示提示（页面加载后2秒内显示，然后4秒淡隐，引导点击）
+    setTimeout(() => {
+      if (!musicUnlocked && audio.paused && hintEl) {
+        hintEl.classList.add('show');
+        setTimeout(() => {
+          if (hintEl && !musicUnlocked) hintEl.classList.remove('show');
+        }, 4500);
+      }
+    }, 800);
+    
+    // 初始化尝试自动播放? 浏览器策略不允许，但我们可以尝试一次无声播放？但没必要，直接等待全局用户解锁。
+    // 同时为了更好的体验，如果用户首次打开网页，点击任何游戏区域均会自动响起音乐。
+    setupGlobalUnlock();
+    updateButtonIcon();
   })();
 </script>
 </body>
